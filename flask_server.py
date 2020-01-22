@@ -1,25 +1,21 @@
 from flask import Flask, render_template, request
 from hh_request import HHRequests
-import json
-from parser_json_dict import  ParserJsonDict
-import pprint
 
-
-# инициализруем оъект Flask
+# создаем экземпляр Flask
 hh_parser_site = Flask(__name__)
 
-
+# создаем роут для / и рендерим к нему hh_site.html
 @hh_parser_site.route("/", methods=['GET'])
 def hh_site():
     return render_template('hh_site.html')
 
-
+# создаем роут для /vacancies (метод GET) и рендерим к нему hh_request.html
 @hh_parser_site.route("/vacancies", methods=['GET'])
 def hh_request():
     full_dict = {}
     return render_template('hh_request.html', data = full_dict)
 
-
+# создаем роут для /vacancies (метод POST) и рендерим к нему hh_request.html
 @hh_parser_site.route("/vacancies", methods=['POST'])
 def hh_request_post():
     print('post')
@@ -36,19 +32,13 @@ def hh_request_post():
     # передавая ему, введенные пользователем данные
     hh_response = HHRequests(hh_request_text, hh_request_town)
 
-    # создаем словарь, содержащий данные о вакансиях с hh.ru
-    # вызывая метод hh_get_vacancy_inf
-    # full_dict = hh_response.hh_get_vacancy_inf
+    # создаем словарь, вызывая метод make_dict_for_html
+    # из экземпляра класса HHRequests
+    dict_for_html = hh_response.make_dict_for_html
 
-    with open('vacancies_for_html', 'r') as vac_dict:
-        full_dict = json.load(vac_dict)
+    return render_template('hh_request.html', data=dict_for_html)
 
-    pprint.pprint(full_dict)
-
-    return render_template('hh_request.html', data=full_dict)
-
-
-
+# создаем роут для / и рендерим к нему hh_contacts.html
 @hh_parser_site.route("/contacts", methods=['GET'])
 def hh_contacts():
     return render_template('hh_contacts.html')
