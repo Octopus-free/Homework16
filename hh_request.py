@@ -90,6 +90,78 @@ class HHRequests:
                 json.dump(vacancies_dict, f)
         return vacancies_dict
 
+    # функция для создания словаря под вывод данных на страницах html
+    @property
+    def make_dict_for_html(self):
+
+        # создаем словарь с исходными данным используя метод hh_get_vacancy_inf
+        # данный словарь содержит информацию с сайта hh.ru по запросу от пользователя
+        dict_from_hh = self.hh_get_vacancy_inf
+
+        # создаем пустой словарь для дальнейшего
+        # заполнения динамических html страниц
+        dict_for_html = {}
+
+        # т.к. в Python словари не имеют индексов
+        # создаем список длиной равной длине словаря с информацией из hh.ru
+        vacancies_list_for_index = list(dict_from_hh.values())
+
+        # создаем цикл для разбора информации по каждой вакансии
+        for each_value in dict_from_hh.values():
+
+            # создаем ключ для вакансии
+            vacancy_index = vacancies_list_for_index.index(each_value) + 1
+
+            # в словарь добавляем ключ для вакансии
+            dict_for_html[vacancy_index] = {}
+
+            # по добавленному ключу добавляем вложенный словарь
+            # ключ - url, значение - http ссылка на вакансию
+            dict_for_html[vacancy_index]['url'] = each_value['url']
+
+            # создаем пустую строку для формирования перечня ключевых навыков
+            # требуемых для каждой вакансии
+            skills_string = ''
+
+            # если ключевые навыки в вакансии указаны
+            # передаем их через запятую в skills_string
+            if len(each_value['skills']) != 0:
+                for each_skill in each_value['skills']:
+                    skills_string += '{}, '.format(each_skill['name'])
+            # если ключевые навыки не указаны
+            # передаем в skills_string сообщение об отсутствии
+            else:
+                skills_string = 'не указаны  '
+
+            # "отрезаем ',' и пробел в строке после последнего указанного в вакансии навыка
+            skills_string = skills_string[:-2]
+
+            # добавляем во вложенный словарь
+            # ключ - skills, значение - строка skills_string с перечнем навыков
+            dict_for_html[vacancy_index]['skills'] = f'Ключевы навыки: {skills_string}'
+
+            # если зарплата в вакансии указана
+            # передаем в salary_string сообщение с указанием зарплаты
+            if each_value['salary'] is not None:
+                if each_value['salary']['from'] is not None and each_value['salary']['currency'] == 'RUR':
+                    salary_string = 'Зарплата - {}'.format(each_value['salary']['from'])
+                    # salary_string += f'{salary_string}\n'
+            # если зарплата в вакансии не указана
+            # передаем в salary_string соответствующее сообщение
+                else:
+                    salary_string = 'Зарплата в рублях не указана'
+            else:
+                salary_string = 'Зарплата в рублях не указана'
+
+            # добавляем во вложенный словарь
+            # ключ - salary, значение - строка salary_string
+            dict_for_html[vacancy_index]['salary'] = salary_string
+
+        with open('vacancies_for_html', 'w') as f:
+            json.dump(dict_for_html, f)
+
+        return dict_for_html
+
 
 if __name__ == '__main__':
     test_connector = HHRequests('python', 'Санкт-Петербург')
